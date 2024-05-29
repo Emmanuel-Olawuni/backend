@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class BlogController extends Controller
@@ -114,9 +115,15 @@ class BlogController extends Controller
     public function destroy(Blog $blog)
     {
         $data = Blog::findOrFail($blog);
+        Storage::delete($data->thumbnail);
+        Storage::delete($data->mainImage);
+        foreach ($blog->images as $image) {
+            Storage::delete($image->path);
+            $image->delete();
+        }
         $data->delete();
         return response()->json([
             'message' => 'Blog deleted Successfully'
-        ], 204);
+        ], 200);
     }
 }
