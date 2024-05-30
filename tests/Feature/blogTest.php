@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -21,5 +22,17 @@ class blogTest extends TestCase
         ]);
         $response->assertStatus(201);
 
+    }
+    public function text_login(){
+        User::factory()->create([
+            'name' => 'emmanuel Olawuni',
+            'password' => bcrypt('password')
+        ]);
+        $response = $this->postJson('/api/login', [
+            'email'=> 'emma@gmail.com',
+            'password' => 'password'
+        ]);
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['access_token']);
     }
 }
