@@ -9,15 +9,21 @@ This repository contains the codebase for a Laravel application. Laravel is a po
 1. Clone the repository to your local machine:
 
 2. Navigate into the project directory:
-    ##  cd repository
+    ```bash
+    cd repository
+    ```
 3. Install PHP dependencies using Composer:
-    ## composer install
-   
+    ```bash
+     composer install
+   ```
 4.Configure your database settings in the .env file.
 
 5. Run migrations to set up the database schema:
-  ## php artisan migrate
-
+```bash
+php artisan migrate
+```
 6 Serve the application:
-  ## php artisan serve
+  ```bash
+ php artisan serve
+```
 7 Access the application in your browser localhost
