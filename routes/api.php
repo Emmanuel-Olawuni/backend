@@ -15,10 +15,18 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-// The api route list. A prefix of v1 to allow more update controls
-Route::middleware('auth:sanctum' )->group(function() {
-    Route::apiResource('blogs', BlogController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/blogs',[ BlogController::class , 'index']);
+    Route::post('/blogs',[ BlogController::class , 'store']);
+    Route::get('/blogs/{id}',[ BlogController::class , 'show']);
+    Route::put('/blogs/{id}',[ BlogController::class , 'update']);
+    Route::delete('/blogs/{id}',[ BlogController::class , 'destroy']);
 });
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/csrf-token', function () {
+    return response()->json([
+        'csrf_token' => csrf_token()
+    ]);
+});

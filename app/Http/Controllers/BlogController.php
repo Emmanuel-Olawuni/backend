@@ -17,19 +17,19 @@ class BlogController extends Controller
         return Blog::all();
     }
 
- 
+
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) //store a blog to database. Validation first
+    public function store(Request $request)
     {
-        $validator = Validator::make($request->alll(), [
+        $validator = Validator::make($request->all(), [
             'title' => 'required | string | max:255',
             'description' => 'required | string ',
             'content' => 'required | string  ',
-            'thumbnail' => 'nullable | image|mimes:jpeg,png,jpg,gif ',
-            'main_image' => 'nullable | image |mimes:jpeg,png,jpg,gif ',
-            'images' => 'nullabe| array',
+            'thumbnail' => ' image ',
+            'mainImage' => ' image ',
+            'images' => ' array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif',
         ]);
         if ($validator->fails()) {
@@ -40,26 +40,35 @@ class BlogController extends Controller
             $blog->thumbnail = $request->file('thumbnail')->store('thumbnail');
         }
         if ($request->hasFile('mainImage')) {
-            $blog->thumbnail = $request->file('mainImage')->store('mainImage');
+            $blog->mainImage = $request->file('mainImage')->store('mainImage');
         }
         if ($request->hasFile('images')) {
+            $images = [];
             foreach ($request->file('images') as  $image) {
-                $path = $image->store('images');
-                $blog->images()->create(['path' => $path]);
+                $images[] = $image->store('images');
+                $blog->images = json_encode($images);
             }
         }
         $blog->save();
         return response()->json([
             'message' => 'Blog uploaded successfully '
-        ], 201);
+        ], 200);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Blog $blog)
+    public function show($blog)
     {
-        return Blog::findOrFail($blog);
+        $data = Blog::find($blog);
+        if ($data) {
+
+            return  response()->json($data, 200);
+        } else {
+            return response()->json([
+                'error' => 'Blog Not Found'
+            ], 404);
+        }
     }
 
 
@@ -68,52 +77,57 @@ class BlogController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Blog $blog)
+    public function update(Request $request,  $blog)
     {
-        $blog = Blog::findOrFail($blog);
-        $validator = Validator::make($request->alll(), [
-            'title' => 'sometimes |required | string | max:255',
-            'description' => ' sometimes | required | string ',
-            'content' => 'sometimes | required | string  ',
-            'thumbnail' => 'nullable | image|mimes:jpeg,png,jpg,gif ',
-            'main_image' => 'nullable | image |mimes:jpeg,png,jpg,gif ',
-            'images' => 'nullabe| array',
+        $blog = Blog::find($blog);
+        $validator = Validator::make($request->all(), [
+            'title' => ' string | max:255',
+            'description' => '  string ',
+            'content' => '  string  ',
+            'thumbnail' => 'image|mimes:jpeg,png,jpg,gif ',
+            'mainImage' => 'image |mimes:jpeg,png,jpg,gif ',
+            'images' => ' array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif',
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-        $blog->fill($request->only('title', 'description', 'content'));
-        if ($request->hasFile('thumbnail')) {
-            $blog->thumbnail = $request->file('thumbnail')->store('thumbnail');
-        }
-        if ($request->hasFile('mainImage')) {
-            $blog->thumbnail = $request->file('mainImage')->store('mainImage');
-        }
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as  $image) {
-                $path = $image->store('images');
-                $blog->images()->create(['path' => $path]);
+        if ($blog) {
+            $blog->title = $request->title;
+            $blog->description = $request->description;
+            $blog->content = $request->content;
+            if ($request->hasFile('thumbnail')) {
+                $blog->thumbnail = $request->file('thumbnail')->store('thumbnail');
             }
+            if ($request->hasFile('mainImage')) {
+                $blog->mainImage = $request->file('mainImage')->store('mainImage');
+            }
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as  $image) {
+                    $path = $image->store('images');
+                    $blog->images()->create(['path' => $path]);
+                }
+            }
+            $blog->save();
+
+            return response()->json([
+                'message' => 'Blog updated successfully '
+            ], 200);
+        } else {
+
+            return response()->json([
+                'error' => 'Blog Not Found'
+            ], 404);
         }
-        $blog->save();
-        return response()->json([
-            'message' => 'Blog updated successfully '
-        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Blog $blog)
+
+    public function destroy($blog)
     {
-        $data = Blog::findOrFail($blog);
-        Storage::delete($data->thumbnail);
-        Storage::delete($data->mainImage);
-        foreach ($blog->images as $image) {
-            Storage::delete($image->path);
-            $image->delete();
-        }
+        $data = Blog::find($blog);
         $data->delete();
         return response()->json([
             'message' => 'Blog deleted Successfully'
